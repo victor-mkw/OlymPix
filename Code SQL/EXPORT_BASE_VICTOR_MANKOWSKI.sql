@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : localhost:3306
--- Généré le : ven. 04 oct. 2024 à 09:19
+-- Généré le : mar. 15 oct. 2024 à 10:54
 -- Version du serveur : 10.11.6-MariaDB-0+deb12u1-log
 -- Version de PHP : 8.2.20
 
@@ -20,6 +20,46 @@ SET time_zone = "+00:00";
 --
 -- Base de données : `e22007619_db2`
 --
+
+DELIMITER $$
+--
+-- Procédures
+--
+CREATE DEFINER=`e22007619sql`@`%` PROCEDURE `insert_act` ()   BEGIN
+SET @id = get_id_last_cnc();
+SELECT cnc_nom INTO @cnc_nom FROM t_concours_cnc WHERE cnc_id = @id;
+SELECT cnc_description INTO @cnc_desc FROM t_concours_cnc WHERE cnc_id = @id;
+SELECT cnc_date_debut INTO @date FROM t_concours_cnc WHERE cnc_id = @id;
+SELECT cpt_username INTO @cnc_orga FROM t_concours_cnc WHERE cnc_id = @id;
+INSERT INTO t_actualite_act VALUES(NULL, 'Nouveau concours !', CONCAT_WS(', ',@cnc_nom,@cnc_desc, @date), CURDATE(), 'A', @cnc_orga);
+END$$
+
+--
+-- Fonctions
+--
+CREATE DEFINER=`e22007619sql`@`%` FUNCTION `donner_phase_concours` (`ID` INT) RETURNS TEXT CHARSET utf8mb4 COLLATE utf8mb4_general_ci  BEGIN
+
+SELECT cnc_date_debut INTO @date_debut FROM t_concours_cnc WHERE cnc_id = ID;
+SELECT ADDDATE(@date_debut, cnc_nb_jours_candidature) INTO @date_candidature FROM t_concours_cnc WHERE cnc_id = ID;
+SELECT ADDDATE(@date_candidature, cnc_nb_jours_pre_selection) INTO @date_pre_sel FROM t_concours_cnc WHERE cnc_id = ID;
+SELECT ADDDATE(@date_pre_sel, cnc_nb_jours_selection) INTO @date_sel FROM t_concours_cnc WHERE cnc_id = ID;
+
+
+IF CURDATE() < @date_debut THEN RETURN 'à venir';
+ELSEIF CURDATE() > @date_debut AND CURDATE() < @date_candidature THEN RETURN 'candidature';
+ELSEIF CURDATE() > @date_candidature AND CURDATE() < @date_pre_sel THEN RETURN 'pré-selection';
+ELSEIF CURDATE() > @date_pre_sel AND CURDATE() < @date_sel THEN RETURN 'sélection';
+ELSE RETURN 'terminé';
+END IF;
+
+END$$
+
+CREATE DEFINER=`e22007619sql`@`%` FUNCTION `get_id_last_cnc` () RETURNS INT(11)  BEGIN
+SELECT cnc_id INTO @id FROM t_concours_cnc ORDER BY cnc_date_debut DESC LIMIT 1;
+RETURN @id;
+END$$
+
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -43,7 +83,11 @@ CREATE TABLE `t_actualite_act` (
 INSERT INTO `t_actualite_act` (`act_id`, `act_titre`, `act_texte`, `act_date_publication`, `act_actif`, `cpt_username`) VALUES
 (1, 'Début du premier concours du Site !', 'Un max de lot à remporter dans toutes les catégories !', '2024-06-01', 'A', 'organisateur'),
 (2, 'Fin du premier concours du Site !', 'Le palmarès est maintenant disponible dans la fiche du concours', '2024-06-25', 'A', 'organisateur'),
-(3, 'Début du second concours du Site !', NULL, '2024-10-01', 'A', 'organisateur');
+(3, 'Début du second concours du Site !', NULL, '2024-10-01', 'A', 'organisateur'),
+(4, 'Nouveau concours !', 'Godot Jam #2, Seconde JAM sur le moteur Godot; Le thème: Nature, 2024-10-01', '2024-10-14', 'A', 'organisateur'),
+(5, 'Nouveau concours !', 'Unity Jam #1, Première JAM sur le moteur Unity; Le thème: Grandeur, 2024-10-01', '2024-10-15', 'A', 'rui.duarte@gmail.com'),
+(6, 'Nouveau concours !', 'Unreal Jam #1, Première JAM sur le moteur Unreal; Le thème: Populaire, 2024-10-01', '2024-10-15', 'A', 'rui.duarte@gmail.com'),
+(7, 'Nouveau concours !', 'Unity Jam #2, Seconde JAM sur le moteur Unity; Le thème: Vitesse, 2024-11-01', '2024-10-15', 'A', 'rui.duarte@gmail.com');
 
 -- --------------------------------------------------------
 
@@ -62,7 +106,8 @@ CREATE TABLE `t_administrateur_adm` (
 --
 
 INSERT INTO `t_administrateur_adm` (`cpt_username`, `adm_nom`, `adm_prenom`) VALUES
-('organisateur', NULL, 'organisateur');
+('organisateur', NULL, 'organisateur'),
+('rui.duarte@gmail.com', 'Rui', 'Duarte');
 
 -- --------------------------------------------------------
 
@@ -164,6 +209,7 @@ INSERT INTO `t_compte_cpt` (`cpt_username`, `cpt_password`, `cpt_actif`) VALUES
 ('legall.patrick@gmail.com', 'e8b41658f9dc32cb51783e27b03946df81ad094b75165870f19db1a640873e9dde5c33cc17c83230c454e4a952b05b3dfee7cb4115867abdf38367ced561c0bb', 'D'),
 ('organisateur', 'b254b8be6cb18b28a16869aeb134eec6711361b01a098f6c292fd4811927aae72bfc94961856f668ed83dae95f83dafcbdb1e9d2df02b78bc54d3db84032e30b', 'A'),
 ('progamedev@gmail.com', '79248ef7371dc7f18520bbf4826aaeaf7e919c4c78e8e377501893f88ceb21d68047b5be4ac79edb20e0f019f0922cdf524e3680a58691eb07eea6da568ccb82', 'A'),
+('rui.duarte@gmail.com', 'eefa06f5997c3aac761dbaf77b07c768ec9d9528a8fb47b83e2e22206e59592ad0a7e580ba119413f3b09c900211cb2974ac032e2d810190587ffbac13b9d9c8', 'A'),
 ('victor.mankowski@gmail.com', 'b4836e4e72d5e379078abf8cc34bbd5e6d5ad1f6b0ea77338e6ec46ce89b9d45f9e28092e04b1879fc52232990eb768066b29e3cdea01dc1646b2ae87d6a529c', 'A');
 
 -- --------------------------------------------------------
@@ -189,7 +235,20 @@ CREATE TABLE `t_concours_cnc` (
 
 INSERT INTO `t_concours_cnc` (`cnc_id`, `cnc_nom`, `cnc_description`, `cnc_date_debut`, `cnc_nb_jours_candidature`, `cnc_nb_jours_pre_selection`, `cnc_nb_jours_selection`, `cpt_username`) VALUES
 (1, 'Godot Jam #1', 'Première JAM sur le moteur Godot; Le thème: Fragment', '2024-06-01', 7, 15, 2, 'organisateur'),
-(2, 'Godot Jam #2', 'Seconde JAM sur le moteur Godot; Le thème: Nature', '2024-10-01', 7, 15, 7, 'organisateur');
+(2, 'Godot Jam #2', 'Seconde JAM sur le moteur Godot; Le thème: Nature', '2024-10-01', 7, 15, 7, 'organisateur'),
+(4, 'Unity Jam #1', 'Première JAM sur le moteur Unity; Le thème: Grandeur', '2024-10-01', 15, 7, 7, 'rui.duarte@gmail.com'),
+(5, 'Unreal Jam #1', 'Première JAM sur le moteur Unreal; Le thème: Populaire', '2024-10-01', 5, 5, 15, 'rui.duarte@gmail.com'),
+(6, 'Unity Jam #2', 'Seconde JAM sur le moteur Unity; Le thème: Vitesse', '2024-11-01', 15, 7, 7, 'rui.duarte@gmail.com');
+
+--
+-- Déclencheurs `t_concours_cnc`
+--
+DELIMITER $$
+CREATE TRIGGER `trigger_act_cnc` AFTER INSERT ON `t_concours_cnc` FOR EACH ROW BEGIN
+CALL insert_act();
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -230,8 +289,8 @@ CREATE TABLE `t_fil_fil` (
 --
 
 INSERT INTO `t_fil_fil` (`fil_id`, `fil_sujet`, `cnc_id`) VALUES
-(1, 'Délibération', 1),
-(2, 'Délibération', 2);
+(1, 'Délibération Concours 1', 1),
+(2, 'Délibération Concours 2', 2);
 
 -- --------------------------------------------------------
 
@@ -320,9 +379,15 @@ CREATE TABLE `t_notation_nte` (
 --
 
 INSERT INTO `t_notation_nte` (`nte_note`, `cpt_username`, `cdt_id`) VALUES
+(4, 'chleo.lamarre@gmail.com', 1),
+(2, 'chleo.lamarre@gmail.com', 2),
+(3, 'chleo.lamarre@gmail.com', 3),
 (2, 'enzo.gp@gmail.com', 1),
 (3, 'enzo.gp@gmail.com', 2),
-(4, 'enzo.gp@gmail.com', 3);
+(4, 'enzo.gp@gmail.com', 3),
+(3, 'victor.mankowski@gmail.com', 1),
+(4, 'victor.mankowski@gmail.com', 2),
+(2, 'victor.mankowski@gmail.com', 3);
 
 --
 -- Index pour les tables déchargées
@@ -430,7 +495,7 @@ ALTER TABLE `t_notation_nte`
 -- AUTO_INCREMENT pour la table `t_actualite_act`
 --
 ALTER TABLE `t_actualite_act`
-  MODIFY `act_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `act_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT pour la table `t_candidature_cdt`
@@ -448,7 +513,7 @@ ALTER TABLE `t_categorie_cat`
 -- AUTO_INCREMENT pour la table `t_concours_cnc`
 --
 ALTER TABLE `t_concours_cnc`
-  MODIFY `cnc_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `cnc_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT pour la table `t_document_doc`
