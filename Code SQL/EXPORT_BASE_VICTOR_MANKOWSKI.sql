@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : localhost:3306
--- Généré le : mar. 15 oct. 2024 à 10:54
+-- Généré le : mer. 16 oct. 2024 à 16:53
 -- Version du serveur : 10.11.6-MariaDB-0+deb12u1-log
 -- Version de PHP : 8.2.20
 
@@ -106,6 +106,9 @@ CREATE TABLE `t_administrateur_adm` (
 --
 
 INSERT INTO `t_administrateur_adm` (`cpt_username`, `adm_nom`, `adm_prenom`) VALUES
+('anna.guillou@gmail.com', 'Anna', 'Guillou'),
+('charles.carrefour@gmail.com', 'Charles', 'Carrefour'),
+('michel.blanc@gmail.com', 'Michel', 'Blanc'),
 ('organisateur', NULL, 'organisateur'),
 ('rui.duarte@gmail.com', 'Rui', 'Duarte');
 
@@ -204,9 +207,12 @@ CREATE TABLE `t_compte_cpt` (
 --
 
 INSERT INTO `t_compte_cpt` (`cpt_username`, `cpt_password`, `cpt_actif`) VALUES
+('anna.guillou@gmail.com', 'e9b5606c6a93e24dbea206c240ed48417bbc447805dd3cbf33879969cd9816458aeed94ffd4484d9c22350c049e19443b0a4726e9371159ca8b693fa51276f38', 'A'),
+('charles.carrefour@gmail.com', 'ae608f384efda0d4c579cada81aa8d4543c13fab4d034f47e5d6ba46037697b2803d157e1a91df8d8161232ef79e74a7382a5a82f2c0becd25345b331b236cfe', 'A'),
 ('chleo.lamarre@gmail.com', 'dd345716fb166806cd6c72c69ef085bb88e98de4b850539a4ff89aec352ab87b53181dfdec89f68f5fc92b8456e74b9331521bd29e593ca3658f1310a46b8012', 'A'),
 ('enzo.gp@gmail.com', '3e84a4fc43c085ca792d18bebb3b61c44806d6f50c7ea932c37cbded7a22d7dda76c1f4ae072703e8cf362a120e7c41347ac19e55b0986f3402d0f434f883818', 'A'),
 ('legall.patrick@gmail.com', 'e8b41658f9dc32cb51783e27b03946df81ad094b75165870f19db1a640873e9dde5c33cc17c83230c454e4a952b05b3dfee7cb4115867abdf38367ced561c0bb', 'D'),
+('michel.blanc@gmail.com', '14509779d2f2d4f065c383b78be4eb1050f7a9655a94c95c6761ee76cb8aed531935b08ec19acbf894d65a985e1a6328fcb2cad07d157b1c0ccb8ce1abff36d5', 'A'),
 ('organisateur', 'b254b8be6cb18b28a16869aeb134eec6711361b01a098f6c292fd4811927aae72bfc94961856f668ed83dae95f83dafcbdb1e9d2df02b78bc54d3db84032e30b', 'A'),
 ('progamedev@gmail.com', '79248ef7371dc7f18520bbf4826aaeaf7e919c4c78e8e377501893f88ceb21d68047b5be4ac79edb20e0f019f0922cdf524e3680a58691eb07eea6da568ccb82', 'A'),
 ('rui.duarte@gmail.com', 'eefa06f5997c3aac761dbaf77b07c768ec9d9528a8fb47b83e2e22206e59592ad0a7e580ba119413f3b09c900211cb2974ac032e2d810190587ffbac13b9d9c8', 'A'),
@@ -270,7 +276,8 @@ CREATE TABLE `t_document_doc` (
 
 INSERT INTO `t_document_doc` (`doc_id`, `doc_nom`, `doc_emplacement`, `doc_type`, `cdt_id`) VALUES
 (1, 'Jeu de Martin', '/emplacement/2024-06-02jeu.exe', 'Executable Windows', 2),
-(2, 'Jeu de Federique', '/emplacement/2024-06-03monjeu.exe', 'Executable Windows', 4);
+(2, 'Jeu de Federique', '/emplacement/2024-06-03monjeu.exe', 'Executable Windows', 4),
+(3, 'Jeu de Jean-Baptiste', '/emplacement/2024-06-06godotjamgame.exe', 'Executable Windows', 1);
 
 -- --------------------------------------------------------
 
@@ -360,7 +367,9 @@ CREATE TABLE `t_message_msg` (
 
 INSERT INTO `t_message_msg` (`msg_id`, `msg_message`, `fil_id`, `cpt_username`) VALUES
 (1, 'J\'ai beaucoup aimé le travail de Jean-Baptist', 1, 'victor.mankowski@gmail.com'),
-(2, 'Le concept d\'Evan me parait plus poussé dans ', 1, 'enzo.gp@gmail.com');
+(2, 'Le concept d\'Evan me parait plus poussé dans ', 1, 'enzo.gp@gmail.com'),
+(3, 'J\'espère voir de beaux jeux sur ce concours', 2, 'legall.patrick@gmail.com'),
+(4, 'Aucun jeu n\'égalera les miens', 2, 'progamedev@gmail.com');
 
 -- --------------------------------------------------------
 
@@ -519,7 +528,7 @@ ALTER TABLE `t_concours_cnc`
 -- AUTO_INCREMENT pour la table `t_document_doc`
 --
 ALTER TABLE `t_document_doc`
-  MODIFY `doc_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `doc_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT pour la table `t_fil_fil`
@@ -531,7 +540,7 @@ ALTER TABLE `t_fil_fil`
 -- AUTO_INCREMENT pour la table `t_message_msg`
 --
 ALTER TABLE `t_message_msg`
-  MODIFY `msg_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `msg_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- Contraintes pour les tables déchargées
