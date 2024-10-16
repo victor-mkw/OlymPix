@@ -1,3 +1,15 @@
+--Requêtes Activité 1:
+
+--1/
+INSERT INTO t_profil_pfl VALUES(NULL,'Antoine', 'Le Blanc', 'leblc@gmail.com', 'O', 'A', CURDATE(), '925-05-30'); 
+SELECT MAX(pfl_id) INTO @id FROM t_profil_pfl;
+INSERT INTO t_compte_cpt VALUES(@id, 'lblc', SHA2('m0t2@S$€', 256));
+
+--2/
+SELECT MIN(pfl_date) INTO @annee FROM t_profil_pfl;
+SELECT @annee;
+
+
 --Requête Activité 2:
 
 DROP VUE IF EXISTS LISTE_PROFIL;
