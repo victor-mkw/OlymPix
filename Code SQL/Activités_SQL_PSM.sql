@@ -2,8 +2,7 @@
 
 DROP VUE IF EXISTS LISTE_PROFIL;
 CREATE VIEW LISTE_PROFIL 
-AS 
-    SELECT pfl_nom AS Nom, pfl_prénom AS Prenom 
+AS SELECT pfl_nom AS Nom, pfl_prénom AS Prenom 
     FROM t_profil_pfl; 
 
 SELECT * FROM LISTE_PROFIL;
