@@ -188,7 +188,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `e22007619_db2`.`t_message_msg` (
   `msg_id` INT NOT NULL AUTO_INCREMENT,
-  `msg_message` VARCHAR(45) NOT NULL,
+  `msg_message` VARCHAR(500) NOT NULL,
   `fil_id` INT NOT NULL,
   `cpt_username` VARCHAR(120) NOT NULL,
   PRIMARY KEY (`msg_id`),

@@ -1,4 +1,4 @@
-INSERT INTO t_compte_cpt VALUES('organisateur', SHA2(CONCAT('OoL56T%','org24*PMYLO'), 512),'A');
+INSERT INTO t_compte_cpt VALUES('organisateur@gmail.com', SHA2(CONCAT('OoL56T%','org24*PMYLO'), 512),'A');
 INSERT INTO t_compte_cpt VALUES('rui.duarte@gmail.com', SHA2(CONCAT('OoL65T%', 'OrgN2#CnC29'), 512), 'A');
 INSERT INTO t_compte_cpt VALUES('michel.blanc@gmail.com', SHA2(CONCAT('OoL65T%', 'OrgN3#CnC75'), 512), 'A');
 INSERT INTO t_compte_cpt VALUES('anna.guillou@gmail.com', SHA2(CONCAT('OoL65T%', 'OrgN4#CnC92'), 512), 'A');
@@ -9,7 +9,7 @@ INSERT INTO t_compte_cpt VALUES('enzo.gp@gmail.com', SHA2(CONCAT('OoL56T%','LoGA
 INSERT INTO t_compte_cpt VALUES('legall.patrick@gmail.com', SHA2(CONCAT('OoL56T%','JuRy25#69PaT'), 512), 'D');
 INSERT INTO t_compte_cpt VALUES('progamedev@gmail.com', SHA2(CONCAT('OoL56T%','JeSUiSlEBesTGD458@'), 512), 'A');
 
-INSERT INTO t_administrateur_adm VALUES('organisateur', NULL, 'organisateur');
+INSERT INTO t_administrateur_adm VALUES('organisateur@gmail.com', NULL, 'organisateur');
 INSERT INTO t_administrateur_adm VALUES('rui.duarte@gmail.com', 'Rui', 'Duarte');
 INSERT INTO t_administrateur_adm VALUES('michel.blanc@gmail.com', 'Michel', 'Blanc');
 INSERT INTO t_administrateur_adm VALUES('anna.guillou@gmail.com', 'Anna', 'Guillou');
@@ -21,8 +21,8 @@ INSERT INTO t_jury_jry VALUES('enzo.gp@gmail.com', 'Pedra', 'Enzo', 'Pro gamer s
 INSERT INTO t_jury_jry VALUES('legall.patrick@gmail.com', 'Le Gall', 'Patrick', 'Expert en Game Design', 'Diplomé d\'un Master en Game Design...', NULL);
 INSERT INTO t_jury_jry VALUES('progamedev@gmail.com', NULL, 'Pro Game Dev', 'Influenceur en Game Developpement', 'Je suis le pro du Game Developpement', NULL);
 
-INSERT INTO t_concours_cnc VALUES(NULL, "Godot Jam #1", "Première JAM sur le moteur Godot; Le thème: Fragment", '2024-06-01', 7, 15, 2, 'organisateur');
-INSERT INTO t_concours_cnc VALUES(NULL, "Godot Jam #2", "Seconde JAM sur le moteur Godot; Le thème: Nature", '2024-10-01', 7, 15, 7, 'organisateur');
+INSERT INTO t_concours_cnc VALUES(NULL, "Godot Jam #1", "Première JAM sur le moteur Godot; Le thème: Fragment", '2024-06-01', 7, 15, 2, 'organisateur@gmail.com');
+INSERT INTO t_concours_cnc VALUES(NULL, "Godot Jam #2", "Seconde JAM sur le moteur Godot; Le thème: Nature", '2024-10-01', 7, 15, 7, 'organisateur@gmail.com');
 INSERT INTO t_concours_cnc VALUES(NULL, "Unity Jam #1", "Première JAM sur le moteur Unity; Le thème: Grandeur", '2024-10-01', 15, 7, 7, 'rui.duarte@gmail.com');
 INSERT INTO t_concours_cnc VALUES(NULL, "Unreal Jam #1", "Première JAM sur le moteur Unreal; Le thème: Populaire", '2024-10-01', 5, 5, 15, 'rui.duarte@gmail.com');
 INSERT INTO t_concours_cnc VALUES(NULL, "Unity Jam #2", "Seconde JAM sur le moteur Unity; Le thème: Vitesse", '2024-11-01', 15, 7, 7, 'rui.duarte@gmail.com');
@@ -49,9 +49,9 @@ INSERT INTO t_candidature_cdt VALUES(NULL,'zmkw@gmail.com', 'Mankowski', 'Zelie'
 INSERT INTO t_candidature_cdt VALUES(NULL,'lcas@gmail.com', 'Casemode', 'Lilou', 'La pour tout gagner', '5E(B2S82riR;aq_*Yj8[', 'D($h87qN', 'A', 2,3);
 INSERT INTO t_candidature_cdt VALUES(NULL,'edam@gmail.com','Damota', 'Eva', 'Développeuse experte', '66URm$6,X-bk^R8tWc4(', 'r.bF58H)', 'A', 2,3);
 
-INSERT INTO t_actualite_act VALUES (NULL,'Début du premier concours du Site !', 'Un max de lot à remporter dans toutes les catégories !', '2024-06-01', 'A', 'organisateur');
-INSERT INTO t_actualite_act VALUES (NULL,'Fin du premier concours du Site !', 'Le palmarès est maintenant disponible dans la fiche du concours', '2024-06-25', 'A', 'organisateur');
-INSERT INTO t_actualite_act VALUES (NULL,'Début du second concours du Site !', 'On espère vous voir nombreux à participer !', '2024-10-01', 'A', 'organisateur');
+INSERT INTO t_actualite_act VALUES (NULL,'Début du premier concours du Site !', 'Un max de lot à remporter dans toutes les catégories !', '2024-06-01', 'A', 'organisateur@gmail.com');
+INSERT INTO t_actualite_act VALUES (NULL,'Fin du premier concours du Site !', 'Le palmarès est maintenant disponible dans la fiche du concours', '2024-06-25', 'A', 'organisateur@gmail.com');
+INSERT INTO t_actualite_act VALUES (NULL,'Début du second concours du Site !', 'On espère vous voir nombreux à participer !', '2024-10-01', 'A', 'organisateur@gmail.com');
 
 INSERT INTO t_juge_jge VALUES('victor.mankowski@gmail.com', 1);
 INSERT INTO t_juge_jge VALUES('chleo.lamarre@gmail.com', 1);
