@@ -5,12 +5,14 @@ INSERT INTO t_profil_pfl VALUES(NULL,'Antoine', 'Le Blanc', 'leblc@gmail.com', '
 SELECT MAX(pfl_id) INTO @id FROM t_profil_pfl;
 INSERT INTO t_compte_cpt VALUES(@id, 'lblc', SHA2('m0t2@S$€', 256));
 
+
 --2/
 SELECT MIN(pfl_date) INTO @annee FROM t_profil_pfl;
 SELECT @annee;
 
 
 --Requête Activité 2:
+
 
 DROP VUE IF EXISTS LISTE_PROFIL;
 CREATE VIEW LISTE_PROFIL 
@@ -38,6 +40,7 @@ SELECT donner_age(1);
 
 --Requêtes Activité 4:
 
+
 --1/
 DROP PROCEDURE IF EXISTS afficher_age;
 DELIMITER //
@@ -50,6 +53,7 @@ END;
 DELIMITER ;
 
 CALL afficher_age(1);
+
 
 --2/
 DROP PROCEDURE IF EXISTS pfl_majeur;
@@ -65,12 +69,14 @@ END;
 //
 DELIMITER ;
 
+
 --3/
 DROP VIEW IF EXISTS INFO_PROFIL;
 CREATE VIEW INFO_PROFIL 
 AS 
     SELECT pfl_nom AS Nom, pfl_prenom AS Prénom, calculer_age(pfl_date_naissance) AS Age 
     FROM t_profil_pfl;
+
 
 --4/
 DROP PROCEDURE IF EXISTS pfl_age_moy;
@@ -96,6 +102,7 @@ SET NEW.pfl_date := CURDATE();
 END;
 //
 DELIMITER ;
+
 
 --2/
 DROP TRIGGER IF EXISTS update_date_pfl;
@@ -136,6 +143,7 @@ END;
 //
 DELIMITER ;
 
+
 --2/
 DROP PROCEDURE IF EXISTS insert_act_cnc;
 DELIMITER //
@@ -150,6 +158,7 @@ INSERT INTO t_actualite_act VALUES(NULL, 'Nouveau concours !', CONCAT_WS(', ',@c
 END;
 //
 DELIMITER ;
+
 
 --3/
 DROP TRIGGER IF EXISTS trigger_act_cnc;
@@ -192,6 +201,7 @@ DELIMITER ;
 
 --Pour aller plus loin: Activité 3
 
+
 --1/ Après un update sur la table concours: Vérification de la correspondance des OLD et NEW et création d'une actualité en conséquence
 DROP TRIGGER IF EXISTS actu_modif_concours;
 DELIMITER //
@@ -222,6 +232,49 @@ BEGIN
 UPDATE t_concours_cnc SET cpt_username = 'organisateur@gmail.com' WHERE t_concours_cnc.cpt_username = OLD.cpt_username;
 DELETE FROM t_actualite_act WHERE t_actualite_act.cpt_username = OLD.cpt_username;
 DELETE FROM t_administrateur_adm WHERE t_administrateur_adm.cpt_username = OLD.cpt_username;
+END;
+//
+DELIMITER ;
+
+
+--Pour aller plus loin: Actvité 4
+
+--1/
+DROP FUNCTION IF EXISTS get_orga_cnc;
+DELIMITER //
+CREATE FUNCTION get_orga_cnc(ID INT) RETURNS TEXT
+BEGIN
+SELECT cpt_username INTO @orga FROM t_concours_cnc WHERE cnc_id = ID;
+RETURN @orga;
+END;
+//
+DELIMITER ;
+
+
+--2/
+DROP PROCEDURE IF EXISTS insert_act_cnc2;
+DELIMITER //
+CREATE PROCEDURE insert_act_cnc2(IN ID INT)
+BEGIN
+
+@orga = get_orga_cnc(ID);
+
+SELECT cnc_nom, cnc_description, cnc_date_debut INTO @cnc_nom, @cnc_desc, @date FROM t_concours_cnc WHERE cnc_orga = @orga;
+
+INSERT INTO t_actualite_act VALUES(NULL, 'Nouveau concours !', CONCAT_WS(' --> ',@cnc_nom, @date, @cnc_desc), CURDATE(), 'A', @orga);
+
+END;
+//
+DELIMITER ;
+
+
+--3/
+DROP TRIGGER IF EXISTS trigger_act_cnc2;
+DELIMITER //
+CREATE TRIGGER trigger_act_cnc2
+AFTER INSERT ON t_concours_cnc
+SET @id = get_id_last_cnc();
+CALL insert_act_cnc2(@id);
 END;
 //
 DELIMITER ;
