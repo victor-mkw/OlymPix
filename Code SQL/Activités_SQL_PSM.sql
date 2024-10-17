@@ -171,11 +171,12 @@ DELIMITER //
 CREATE FUNCTION donner_phase_concours(ID INT) RETURNS TEXT
 BEGIN
 
-SELECT cnc_date_debut INTO @date_debut FROM t_concours_cnc WHERE cnc_id = ID;
-SELECT ADDDATE(@date_debut, cnc_nb_jours_candidature) INTO @date_candidature FROM t_concours_cnc WHERE cnc_id = ID;
-SELECT ADDDATE(@date_candidature, cnc_nb_jours_pre_selection) INTO @date_pre_sel FROM t_concours_cnc WHERE cnc_id = ID;
-SELECT ADDDATE(@date_pre_sel, cnc_nb_jours_selection) INTO @date_sel FROM t_concours_cnc WHERE cnc_id = ID;
+SELECT cnc_date_debut, cnc_nb_jours_candidature, cnc_nb_jours_pre_selection, cnc_nb_jours_selection INTO @date_debut, @nbj_candidature, @nbj_pre_sel, @nbj_sel
+    FROM t_concours_cnc WHERE cnc_id = ID;
 
+SET @date_candidature := ADDDATE(@date_debut, @nbj_candidature);
+SET @date_pre_sel := ADDDATE(@date_candidature, @nbj_pre_sel);
+SET @date_sel := ADDDATE(@date_pre_sel, @nbj_sel);
 
 IF CURDATE() < @date_debut THEN RETURN 'à venir';
 ELSEIF CURDATE() < @date_candidature THEN RETURN 'candidature';
@@ -184,6 +185,28 @@ ELSEIF CURDATE() < @date_sel THEN RETURN 'sélection';
 ELSE RETURN 'terminé';
 END IF;
 
+END;
+//
+DELIMITER ;
+
+
+--Pour aller plus loin: Activité 3
+
+--1/ Après un update sur la table concours: Vérification de la correspondance des OLD et NEW et création d'une actualité en conséquence
+DROP TRIGGER IF EXISTS actu_modif_concours;
+DELIMITER //
+CREATE TRIGGER actu_modif_concours
+AFTER UPDATE ON t_concours_cnc
+FOR EACH ROW
+BEGIN
+
+IF OLD.cnc_nom != NEW.cnc_nom THEN
+    INSERT INTO t_actualite_act VALUES (NULL, 'Changement de nom !', CONCAT_WS(' => ', 'Attention, changement de nom du concours', OLD.cnc_nom, NEW.cnc_nom), CURDATE(), 'A', 'organisateur');
+
+ELSE
+    NSERT INTO t_actualite_act VALUES (NULL, 'Modification du concours !', CONCAT_WS(' => ', 'MODIFICATION DU CONCOURS',NEW.cnc_nom,'Voir la liste des concours !'), CURDATE(), 'A','organisateur');
+
+END IF;
 END;
 //
 DELIMITER ;
