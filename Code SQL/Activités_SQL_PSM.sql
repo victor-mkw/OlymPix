@@ -200,13 +200,28 @@ AFTER UPDATE ON t_concours_cnc
 FOR EACH ROW
 BEGIN
 
-IF OLD.cnc_nom != NEW.cnc_nom THEN
-    INSERT INTO t_actualite_act VALUES (NULL, 'Changement de nom !', CONCAT_WS(' => ', 'Attention, changement de nom du concours', OLD.cnc_nom, NEW.cnc_nom), CURDATE(), 'A', 'organisateur');
+IF OLD.cnc_nom != NEW.cnc_nom AND (OLD.cnc_description != NEW.cnc_description OR OLD.cnc_date_debut != NEW.cnc_date_debut OR OLD.cnc_nb_jours_candidature != NEW.cnc_nb_jours_candidature OR OLD.cnc_nb_jours_pre_selection != NEW.cnc_nb_jours_pre_selection OR OLD.cnc_nb_jours_pre_selection != NEW.cnc_nb_jours_pre_selection) THEN
+    INSERT INTO t_actualite_act VALUES (NULL, 'Modification du concours !', CONCAT_WS(' => ', 'MODIFICATION DU CONCOURS',NEW.cnc_nom,'Voir la liste des concours !'), CURDATE(), 'A','organisateur@gmail.com');
 
-ELSE
-    NSERT INTO t_actualite_act VALUES (NULL, 'Modification du concours !', CONCAT_WS(' => ', 'MODIFICATION DU CONCOURS',NEW.cnc_nom,'Voir la liste des concours !'), CURDATE(), 'A','organisateur');
+ELSEIF OLD.cnc_nom != NEW.cnc_nom THEN
+    INSERT INTO t_actualite_act VALUES (NULL, 'Changement de nom !', CONCAT_WS(' => ', 'Attention, changement de nom du concours', OLD.cnc_nom, NEW.cnc_nom), CURDATE(), 'A', 'organisateur@gmail.com');
 
 END IF;
+END;
+//
+DELIMITER ;
+
+
+--2/
+DROP TRIGGER IF EXISTS trigg_supp_admin;
+DELIMITER //
+CREATE TRIGGER trigg_supp_admin
+BEFORE DELETE ON t_compte_cpt
+FOR EACH ROW
+BEGIN
+UPDATE t_concours_cnc SET cpt_username = 'organisateur@gmail.com' WHERE t_concours_cnc.cpt_username = OLD.cpt_username;
+DELETE FROM t_actualite_act WHERE t_actualite_act.cpt_username = OLD.cpt_username;
+DELETE FROM t_administrateur_adm WHERE t_administrateur_adm.cpt_username = OLD.cpt_username;
 END;
 //
 DELIMITER ;
