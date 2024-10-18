@@ -1,6 +1,8 @@
 -- Faire travailler les fonctions, procédures et trigger ensemble
 
---1.
+--Activité 5: Requêtes personnelles
+
+--1/ Génération des codes du candidat
 --Fonction de génération d'un code à 8 caractères
 DROP FUNCTION IF EXISTS create_code_candidat;
 DELIMITER //
@@ -34,14 +36,14 @@ CREATE TRIGGER trigg_codes
 BEFORE INSERT ON t_candidature_cdt
 FOR EACH ROW
 BEGIN
-SET NEW.cdt_code_candidat := create_code_candidat;
-SET NEW.cdt_code_dossier := create_code_dossier;
+SET cdt_code_candidat := create_code_candidat;
+SET cdt_code_dossier := create_code_dossier;
 END;
 //
 DELIMITER ;
 
 
---2.
+--2/ Création d'un fil de conversation à la création d'un concours
 --Procédure INSERT de fil de conversation du dernier concours
 DROP PROCEDURE IF EXISTS create_fil_cnc;
 DELIMITER //

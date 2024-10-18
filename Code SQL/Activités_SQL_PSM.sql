@@ -273,8 +273,7 @@ DROP TRIGGER IF EXISTS trigger_act_cnc2;
 DELIMITER //
 CREATE TRIGGER trigger_act_cnc2
 AFTER INSERT ON t_concours_cnc
-SET @id = get_id_last_cnc();
-CALL insert_act_cnc2(@id);
+CALL insert_act_cnc2(NEW.cnc_id);
 END;
 //
 DELIMITER ;
