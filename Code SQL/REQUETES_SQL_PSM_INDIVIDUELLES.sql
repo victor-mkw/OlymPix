@@ -69,3 +69,12 @@ CALL create_fil_cnc();
 END;
 //
 DELIMITER ;
+
+--Vue regroupant les candidats avec leur nom, prenom, somme de points, l'id de leur concours et celui de leur catégorie
+
+DROP VIEW IF EXISTS v_candidats_points;
+CREATE VIEW v_candidats_points
+AS SELECT cdt_nom_candidat, cdt_prenom_candidat, SUM(nte_note) as cdt_note, cnc_id, cat_id 
+    FROM t_candidature_cdt 
+    JOIN t_notation_nte ON t_notation_nte.cdt_id = t_candidature_cdt.cdt_id
+    GROUP BY t_candidature_cdt.cdt_id;

@@ -28,5 +28,13 @@ DELIMITER ;
 
 
 --Requête de récupération des candidatures par catégories, triées du plus grand nombre de points au plus petit.
-SELECT cdt_nom_candidat, cdt_prenom_candidat, SUM(nte_note) as note_totale FROM t_candidature_cdt 
-    JOIN t_notation_nte ON t_candidature_cdt.cdt_id = t_notation_nte.cdt_id WHERE cnc_id = 1 GROUP BY t_candidature_cdt.cdt_id;
+SELECT cdt_nom_candidat, cdt_prenom_candidat, SUM(nte_note) as note_totale, cnc_id, cat_id FROM t_candidature_cdt 
+    JOIN t_notation_nte ON t_candidature_cdt.cdt_id = t_notation_nte.cdt_id 
+    WHERE cnc_id = 1 and cat_id = 1
+    GROUP BY t_candidature_cdt.cdt_id
+    ORDER BY DESC;
+
+
+--Même requête mais avec la vue en plus (cf requêtes individuelles)
+SELECT * FROM v_candidats_points
+    ORDER BY cdt_note DESC;
