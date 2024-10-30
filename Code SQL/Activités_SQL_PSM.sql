@@ -124,7 +124,7 @@ CREATE TRIGGER salage_hashage
 BEFORE INSERT ON t_compte_cpt
 FOR EACH ROW
 BEGIN
-SET NEW.cpt_mot_de_passe := SHA2(CONCAT(NEW.cpt_mot_de_passe, 'CeCiEsTMoNSEl'), 256);
+SET NEW.cpt_mot_de_passe := SHA2(CONCAT(NEW.cpt_mot_de_passe, 'OoL56T%'), 256);
 END;
 //
 DELIMITER ;
