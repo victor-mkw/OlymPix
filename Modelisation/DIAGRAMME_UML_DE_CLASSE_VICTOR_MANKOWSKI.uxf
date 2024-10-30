@@ -14,7 +14,7 @@
 _id_compte: number(4)_
 nom_utilisateur: varchar(120)
 mot_de_passe: char(128)
-compte_actif: char(1)</panel_attributes>
+compte_etat: char(1)</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
