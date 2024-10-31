@@ -1,19 +1,19 @@
 --En tant que visiteur sprint 1 ⇒ 
 --Actualités :
 --1. Requête listant toutes les actualités de la table des actualités et leur auteur (login)
-SELECT act_titre, act_texte, cpt_username FROM t_actualite_act;
+SELECT * FROM t_actualite_act;
 
 --2. Requête donnant les données d'une actualité dont on connaît l'identifiant (n°)
-SELECT * from t_actualite_act WHERE act_id = ID;
+SELECT * from t_actualite_act WHERE act_id = 1;
 
 --3. Requête listant les 5 dernières actualités dans l'ordre décroissant
 SELECT * FROM t_actualite_act ORDER BY act_date_publication DESC LIMIT 5;
 
 --4. Requête recherchant et donnant la (ou les) actualité(s) contenant un mot particulier
-SELECT act_nom FROM t_actualite_act WHERE act_nom LIKE '%nom%' OR act_texte LIKE '%nom%';
+SELECT * FROM t_actualite_act WHERE act_titre LIKE '%nom%' OR act_texte LIKE '%nom%';
 
 --5. Requête listant toutes les actualités postées à une date particulière + le login de l’auteur
-SELECT act_titre, act_texte, cpt_username FROM t_actualite_act WHERE act_date_publication = '2024-10-17';
+SELECT * FROM t_actualite_act WHERE act_date_publication = '2024-10-17';
 
 --sprint 3 ⇒ 
 --6. Requête d'ajout d'une actualité
@@ -26,69 +26,113 @@ SELECT act_titre, act_texte, cpt_username FROM t_actualite_act WHERE act_date_pu
 --En tant que visiteur sprint 1⇒
 --Concours :
 --1. Requête listant tous les concours de la plateforme (passés, en cours, à venir)
-SELECT cnc_nom, cnc_description FROM t_concours_cnc;
+SELECT * FROM t_concours_cnc;
 
 --2. Requête (+code SQL) listant tous les concours de la plateforme (passés, en cours, à venir) avec leurs principales caractéristiques (organisateur responsable,
 --date de début, dates intermédiaires, catégories, nom, prénom et discipline des juges)
-SELECT t_concours_cnc.cpt_username, cnc_nom, cnc_description, cnc_date_debut, ADDDATE(cnc_date_debut, cnc_nb_jours_candidature) AS cnc_date_candidature, 
-ADDDATE(cnc_date_debut, cnc_nb_jours_candidature + cnc_nb_jours_pre_selection) AS cnc_date_pre_selection, 
-ADDDATE(cnc_date_debut, cnc_nb_jours_candidature + cnc_nb_jours_pre_selection + cnc_nb_jours_selection) AS cnc_date_selection,
-cat_nom, jry_nom, jry_prenom, jry_description
-FROM t_concours_cnc
-LEFT JOIN t_comprend_cmp ON t_comprend_cmp.cnc_id = t_concours_cnc.cnc_id
-LEFT JOIN t_categorie_cat ON t_comprend_cmp.cat_id = t_categorie_cat.cat_id
-LEFT JOIN t_juge_jge ON t_concours_cnc.cnc_id = t_juge_jge.cnc_id
-LEFT JOIN t_jury_jry ON t_juge_jge.cpt_username = t_jury_jry.cpt_username;
+DELIMITER //
+CREATE FUNCTION get_jry_cnc(ID INT) RETURNS TEXT
+BEGIN
+SELECT GROUP_CONCAT(CONCAT_WS(', ',jry_nom,jry_prenom,t_jury_jry.cpt_username) ORDER BY t_jury_jry.cpt_username ASC SEPARATOR ' / ') INTO @res FROM t_jury_jry
+JOIN t_juge_jge ON t_jury_jry.cpt_username = t_juge_jge.cpt_username
+WHERE cnc_id = ID;
+RETURN @res;
+END;
+//
+DELIMITER ;
+
+
+DELIMITER //
+CREATE FUNCTION get_cat_cnc(ID INT) RETURNS TEXT
+BEGIN
+SELECT GROUP_CONCAT(cat_nom ORDER BY cat_nom ASC SEPARATOR ', ') INTO @res FROM t_categorie_cat;
+JOIN t_comprend_cmp ON t_categorie_cat.cat_id = t_comprend_cmp.cat_id;
+WHERE cnc_id = ID;
+RETURN @res;
+END;
+//
+DELIMITER ;
+
+
+DELIMITER //
+CREATE FUNCTION get_date_intermediaire(ID INT) RETURNS TEXT
+BEGIN
+SELECT cnc_date_debut, cnc_nb_jours_candidature, cnc_nb_jours_pre_selection, cnc_nb_jours_selection INTO @date_debut, @nbj_candidature, @nbj_pre_sel, @nbj_sel
+    FROM t_concours_cnc WHERE cnc_id = ID;
+
+SET @date_candidature := ADDDATE(@date_debut, @nbj_candidature);
+SET @date_pre_sel := ADDDATE(@date_candidature, @nbj_pre_sel);
+SET @date_sel := ADDDATE(@date_pre_sel, @nbj_sel);
+
+SELECT CONCAT_WS(', ', @date_debut, @date_candidature, @date_pre_sel, @date_sel) INTO @res;
+RETURN @res;
+END;
+//
+DELIMITER ;
+
+
+SELECT cnc_nom, cnc_description, cpt_username, get_date_intermediaire(cnc_id), get_cat_cnc(cnc_id), get_jry_cnc(cnc_id) FROM t_concours_cnc;
+
 
 --3. Requête listant les concours qui ont débuté et leur phase actuelle (ex : finale)
-SELECT cnc_nom, donner_phase_concours(cnc_id) FROM t_concours_cnc WHERE cnc_date_debut < CURDATE();
+SELECT cnc_nom, cnc_description, donner_phase_concours(cnc_id) FROM t_concours_cnc WHERE cnc_date_debut < CURDATE();
 
 --4. Requête listant les concours à venir avec leur date de début
-SELECT cnc_nom FROM t_concours_cnc WHERE cnc_date_debut >= CURDATE();
+SELECT cnc_nom, cnc_description, cnc_date_debut FROM t_concours_cnc WHERE cnc_date_debut >= CURDATE();
 
 --5. Requête donnant toutes les caractéristiques d’un concours particulier (ID connu)
-SELECT * FROM t_concours_cnc WHERE cnc_id = ID;
+SELECT * FROM t_concours_cnc WHERE cnc_id = 1;
 
 --6. Requête donnant les informations des membres du jury d’un concours particulier (ID connu)
-SELECT jry_nom, jry_prenom, jry_description, jry_biographie, jry_url, t_concours_cnc.cnc_id FROM t_jury_jry 
+SELECT jry_nom, jry_prenom, jry_discipline, jry_biographie, jry_url, t_concours_cnc.cnc_id FROM t_jury_jry 
 JOIN t_juge_jge ON t_jury_jry.cpt_username = t_juge_jge.cpt_username
 JOIN t_concours_cnc ON t_juge_jge.cnc_id = t_concours_cnc.cnc_id
 WHERE t_concours_cnc.cnc_id = 1;
 
 --7. Requête listant tous les membres de jury, classés par discipline, pour tous les concours de la plateforme
-
+SELECT * FROM t_jury_jry ORDER BY jry_discipline;
 
 --8. Requête donnant la liste des catégories d’un concours particulier (ID connu)
 SELECT cat_nom FROM t_categorie_cat 
 JOIN t_comprend_cmp ON t_categorie_cat.cat_id = t_comprend_cmp.cat_id
-WHERE t_comprend_cmp.cnc_id = 1;
+WHERE cnc_id = 1;
 
 --9. Requête listant tous les administrateurs de la plateforme et les concours dont il est (/a été) responsable, s’il y en a
 SELECT * FROM t_administrateur_adm
-JOIN t_concours_cnc USING (cpt_username)
+LEFT JOIN t_concours_cnc USING (cpt_username);
 
 
 --sprint 2⇒
 --10. Requête(s) listant tous les candidats pré-sélectionnés pour un concours particulier (ID connu) avec leurs principales données (nom, prénom, catégorie,
 --date d’inscription, nombre de documents ressources téléversés)
+DELIMITER //
+CREATE FUNCTION get_nb_docs(ID INT) RETURNS INT
+BEGIN
+SELECT COUNT(doc_nom) INTO @res FROM t_document_doc WHERE cdt_id = ID;
+RETURN @res;
+END;
+//
+DELIMITER ;
 
+SELECT cdt_nom_candidat, cdt_prenom_candidat, cat_nom, cdt_date_inscription, get_nb_docs(t_candidature_cdt.cdt_id) FROM t_candidature_cdt
+JOIN t_categorie_cat USING (cat_id)
+WHERE cdt_etat = 'P' AND cnc_id = 1;
 
 --11. Requête(s) listant tous les candidats pré-sélectionnés classés par catégorie pour un concours particulier (ID connu)
 SELECT cdt_nom_candidat, cdt_prenom_candidat, cat_nom FROM t_candidature_cdt
 JOIN t_categorie_cat USING (cat_id)
 WHERE cnc_id = 1 AND cdt_etat = 'P'
-ORDER BY cat_id ASC;
+ORDER BY cat_nom ASC;
 
 --12. Requête donnant tous les noms des documents ressources d’un candidat (ID connu) pour un concours particulier (ID connu)
 SELECT cdt_nom_candidat, cdt_prenom_candidat, doc_nom FROM t_document_doc 
 JOIN t_candidature_cdt USING (cdt_id)
 JOIN t_concours_cnc USING (cnc_id)
-WHERE cdt_id = 1 AND cnc_id = 1
+WHERE cdt_id = 1 AND cnc_id = 1;
 
 --13. Requête donnant le palmarès d’un concours particulier (ID connu) pour lequel la phase finale est terminée
-SET @cnc_id = 1;
-SELECT cdt_nom_candidat, cdt_prenom_candidat, cnc_id FROM t_candidature_cdt
-WHERE cnc_id = @cnc_id AND donner_phase_concours(@cnc_id) = 'terminé';
+SELECT DISTINCT cdt_nom_candidat, cdt_prenom_candidat, cnc_id FROM t_candidature_cdt
+WHERE cnc_id = 1 AND donner_phase_concours(1) = 'terminé' AND cdt_etat = 'S';
 
 --14. Requête donnant les palmarès ( nom / prénom / rang des 3 vainqueurs) des concours terminés (sans tenir compte des notes des juges au profil désactivé)
 SELECT cdt_nom_candidat, cdt_prenom_candidat, cnc_id, SUM(nte_note) as note FROM t_candidature_cdt
@@ -97,7 +141,7 @@ JOIN t_jury_jry ON t_notation_nte.cpt_username = t_jury_jry.cpt_username
 JOIN t_compte_cpt ON t_jury_jry.cpt_username = t_compte_cpt.cpt_username
 WHERE donner_phase_concours(cnc_id) = 'terminé' AND cpt_etat = 'A'
 GROUP BY t_candidature_cdt.cdt_id
-ORDER BY note DESC
+ORDER BY note DESC;
 
 
 --En tant que candidat sprint 1⇒
@@ -107,8 +151,7 @@ DELIMITER //
 CREATE FUNCTION candidat_existe(code_c CHAR(8), code_d CHAR(20)) RETURNS INT
 BEGIN
 SELECT cdt_id INTO @cdt FROM t_candidature_cdt WHERE cdt_code_candidat = code_c AND cdt_code_dossier = code_d; 
-RETURN @cdt
-END IF;
+RETURN @cdt;
 END;
 //
 DELIMITER ;
@@ -116,17 +159,19 @@ DELIMITER ;
 --2. Requête d’affichage, si autorisé, de toutes les informations associées à une inscription connaissant le couple de code d’identification / code d’inscription
 SET @code_c := ';4t3[FxU';
 SET @code_d := 'w3/nCd_Y5#z^ZG]v49U5';
-SELECT cdt_nom_candidat, cdt_prenom_candidat, cdt_mail, cdt_presentation_candidat FROM t_candidature_cdt 
+SELECT * FROM t_candidature_cdt 
 WHERE candidat_existe(@code_c, @code_d) = cdt_id;
 
 
 --sprint 2⇒
 --3. Requête(s) d’insertion de toutes les données d’un candidat et de sa candidature, y compris ses documents ressources et sa catégorie
+SET @id_cnc := 2;
+SET @id_cat := 3
 INSERT INTO t_candidature_cdt 
-VALUES(NULL,'mail@gmail.com','Nom', 'Prénom', 'Description', '0000-00-00', 'oazq54zqx', 'N', 2,3);
+VALUES(NULL,'mail@gmail.com','Nom', 'Prénom', 'Description', 'code dossier', 'code candidat', '0000-00-00', 'N', @id_cnc, @id_cat);
 
 --En PHP: récupération du nom du document fournis dans le formulaire et du chemin relatif pour insérer dans la base
-INSERT INTO t_document_doc VALUES(NULL,'Nomdudocument.exe', './documents/2024-10-27Nomdudocument.exe', 'Executable Windows', 2);
+INSERT INTO t_document_doc VALUES(NULL,'2024-10-27Nomdudocument.exe', './documents/2024-10-27Nomdudocument.exe', 'Executable Windows', 2);
 
 --4. Requête(s) de suppression d’une candidature connaissant le couple de code d’identification / code d’inscription
 DELIMITER //
@@ -165,11 +210,12 @@ END;
 DELIMITER ;
 
 -- 3. Requête récupérant les données d'un profil particulier (utilisateur connecté)
-SET @username;
-SET @mdp;
-SELECT t_compte_cpt.cpt_username, cpt_etat, adm_nom, adm_prenom FROM t_compte_cpt
+SET @usr = 'michel.blanc@gmail.com';
+SET @mdp = 'OrgN3#CnC75';
+
+SELECT * FROM t_compte_cpt
 LEFT JOIN t_administrateur_adm ON t_compte_cpt.cpt_username = t_administrateur_adm.cpt_username
-WHERE compte_connexion(@username, @mdp) = t_compte_cpt.cpt_username;
+WHERE compte_connexion(@usr, @mdp) = t_compte_cpt.cpt_username;
 
 -- 4. Requête de mise à jour du mot de passe d'un profil
 @mdp = 'Nouveau mot de passe';
@@ -179,11 +225,11 @@ UPDATE t_compte_cpt SET cpt_password = SHA2(CONCAT('OoL56T%', @mdp), 512) WHERE 
 INSERT INTO t_administrateur_adm VALUES('charles.carrefour@gmail.com', 'Charles', 'Carrefour');
 
 --d'un profil jury
-INSERT INTO t_jury_jry VALUES('enzo.gp@gmail.com', 'Pedra', 'Enzo', 'Pro gamer sur Mario Kart 8 Deluxe', 'Ayant de grande connaissance dans le domaine...', NULL);
+INSERT INTO t_jury_jry VALUES('enzo.gp@gmail.com', 'Pedra', 'Enzo', 'Pro gamer', 'Ayant de grande connaissance dans le domaine...', NULL);
 
 -- sprint 2⇒
 -- 6. Requête de désactivation d'un profil
-UPDATE t_compte_cpt SET cpt_etat = 'D' WHERE cpt_username = 'victor.mankowski@gmail.com'
+UPDATE t_compte_cpt SET cpt_etat = 'D' WHERE cpt_username = 'victor.mankowski@gmail.com';
 
 -- 7. Requête(s) de suppression d’un profil administrateur / membre de jury et des 
 -- données associées à ce profil (sans supprimer les données d’un concours démarré !)
@@ -206,10 +252,10 @@ DELETE FROM t_jury_jry WHERE cpt_username = 'victor.mankowski@gmail.com';
 -- En tant qu’administrateur sprint 2⇒
 -- Concours / catégories / membres du jury / [+ disciplines] :
 -- 1. Requête listant tous les concours ordonnés par leur date de début
-SELECT cnc_nom FROM t_concours_cnc ORDER BY cnc_date_debut ASC;
+SELECT * FROM t_concours_cnc ORDER BY cnc_date_debut ASC;
 
 -- 2. Requête listant tous les concours et leur(s) catégorie(s) et juges, s’il y en a
-SELECT cnc_nom, cat_nom, cpt_username FROM t_concours_cnc
+SELECT cnc_nom, cat_nom, t_juge_jge.cpt_username FROM t_concours_cnc
 JOIN t_juge_jge ON t_concours_cnc.cnc_id = t_juge_jge.cnc_id
 JOIN t_comprend_cmp ON t_concours_cnc.cnc_id = t_comprend_cmp.cnc_id
 JOIN t_categorie_cat ON t_comprend_cmp.cat_id = t_categorie_cat.cat_id
@@ -219,7 +265,7 @@ DROP PROCEDURE IF EXISTS creer_concours;
 DELIMITER //
 CREATE PROCEDURE creer_concours(IN NOM TEXT, IN TEXTE TEXT, IN D_DEBUT DATE, IN NBJ_C INT, IN NBJ_PS INT, IN NBJ_S INT, IN USR TEXT, IN MDP TEXT)
 BEGIN
-IF compte_connexion(USR, MDP) = MDP THEN 
+IF compte_connexion(USR, MDP) = USR THEN 
     INSERT INTO t_concours_cnc VALUES(NULL, NOM, TEXTE, D_DEBUT, NBJ_C, NBJ_PS, NBJ_S, USR);
 END IF;
 END;
@@ -265,7 +311,7 @@ DELIMITER ;
 DELIMITER //
 CREATE FUNCTION get_nb_candidatures(ID INT) RETURNS INT
 BEGIN
-SELECT SUM(cdt_id) INTO @res FROM t_candidature_cdt WHERE cnc_id = ID;
+SELECT COUNT(cdt_id) INTO @res FROM t_candidature_cdt WHERE cnc_id = ID;
 RETURN @res;
 END;
 //
@@ -274,29 +320,29 @@ DELIMITER ;
 SELECT cnc_nom FROM t_concours_cnc WHERE CURDATE() > cnc_date_debut AND get_nb_candidatures(cnc_id) = 0;
 
 -- 2. Requête listant toutes les candidatures classées par concours
-SELECT cdt_nom_candidat, cdt_prenom_candidat FROM t_candidature_cdt ORDER BY cnc_id;
+SELECT cdt_nom_candidat, cdt_prenom_candidat, cnc_id FROM t_candidature_cdt ORDER BY cnc_id;
 
 -- 3. Requête listant toutes les candidatures pour un concours particulier
-SELECT cdt_nom_candidat, cdt_prenom_candidat FROM t_candidature_cdt WHERE cnc_id = 1;
+SELECT cdt_nom_candidat, cdt_prenom_candidat, cnc_id FROM t_candidature_cdt WHERE cnc_id = 1;
 
 -- 4. Requête listant toutes les candidatures par catégorie pour un concours particulier
 SELECT cdt_nom_candidat, cdt_prenom_candidat, cat_id FROM t_candidature_cdt WHERE cnc_id = 1 ORDER BY cat_id;
 
 -- 5. Requête listant les candidatures d’un concours particulier selon leur état
-SELECT cdt_nom_candidat, cdt_prenom_candidat, cdt_etat FROM t_candidature_cdt ORDER BY cdt_etat;
+SELECT cdt_nom_candidat, cdt_prenom_candidat, cdt_etat FROM t_candidature_cdt WHERE cnc_id = 1 ORDER BY cdt_etat;
 
 -- 6. Requête donnant la liste des candidatures faites non pré-sélectionnées pour un concours particulier en phase de pré-sélection
-SELECT cdt_nom_candidat, cdt_prenom_candidat FROM t_candidature_cdt WHERE donner_phase_concours(cnc_id) = 'pré-sélection' AND cnc_id = 2 AND cdt_etat = 'P';
+SELECT cdt_nom_candidat, cdt_prenom_candidat, cdt_etat, donner_phase_concours(cnc_id) as cnc_phase FROM t_candidature_cdt WHERE donner_phase_concours(cnc_id) = 'pré-sélection' AND cnc_id = 2 AND cdt_etat = 'P';
 
 -- 7. Requête (ou code SQL) modifiant l’état d’une candidature (ID connu)
 DELIMITER //
 CREATE PROCEDURE update_etat_cdt(IN ID INT)
+BEGIN
 SELECT cdt_etat INTO @etat FROM t_candidature_cdt WHERE cdt_id = ID;
-CASE @etat
-    WHEN @etat = 'N' THEN SET @etat = 'P';
-    WHEN @etat = 'P' THEN SET @etat = 'S';
-END CASE;
-UPDATE t_candidature_cdt SET cdt_etat = @etat WHERE cdt_id = ID;
+IF @etat = 'N' THEN SET @nvetat = 'P';
+ELSEIF @etat = 'P' THEN SET @nvetat = 'S';
+END IF;
+UPDATE t_candidature_cdt SET cdt_etat = @nvetat WHERE cdt_id = ID;
 END;
 //
 DELIMITER ;
@@ -305,7 +351,7 @@ DELIMITER ;
 SELECT * FROM t_candidature_cdt WHERE cdt_id = 1 
 
 -- 9. Requête listant toutes les candidatures pré-sélectionnées classées par concours que le membre du jury connecté doit évaluer
-@usr = 'adresse mail du jury connecté';
+SET @usr := 'adresse mail du jury connecté';
 SELECT cdt_nom_candidat, cdt_prenom_candidat FROM t_candidature_cdt 
 WHERE donner_phase_concours(cnc_id) = 'pré-sélection' AND cnc_id = (SELECT cnc_id FROM t_juge_jge WHERE cpt_username = @usr) AND cdt_etat = 'P'
 ORDER BY cnc_id;
@@ -314,20 +360,21 @@ ORDER BY cnc_id;
 -- 10. Requête pour vérifier si le juge connecté a déjà mis ses 4 points (/ 3 ou 2 points)
 DELIMITER //
 CREATE FUNCTION get_points_attribues(PNT INT, USR TEXT) RETURNS INT
+BEGIN
 SELECT SUM(nte_note) INTO @res FROM t_notation_nte WHERE nte_note = PNT AND cpt_username = USR;
 RETURN @res;
 END;
 //
 DELIMITER ;
 
-SELECT points_attribues(4, 'victor.mankowski@gmail.com');
+SELECT get_points_attribues(4, 'victor.mankowski@gmail.com');
 
 -- 11. Requête permettant au juge connecté d’attribuer une note à une candidature
 DELIMITER //
 CREATE PROCEDURE attribuer_point(IN PNT INT, IN ID INT, IN USR TEXT)
 BEGIN
-IF PNT == 0 OR PNT == 1 THEN INSERT INTO t_notation_nte VALUES(PNT, USR, ID);
-ELSEIF (PNT >= 2 OR PNT <= 4) AND get_points_attribues(PNT, USR) != NULL THEN INSERT INTO t_notation_nte VALUES(PNT, USR, ID);
+IF PNT = 0 OR PNT = 1 THEN INSERT INTO t_notation_nte VALUES(PNT, USR, ID);
+ELSEIF PNT >= 2 AND PNT <= 4 AND get_points_attribues(PNT, USR) IS NULL THEN INSERT INTO t_notation_nte VALUES(PNT, USR, ID);
 END IF;
 END;
 //
@@ -337,8 +384,8 @@ DELIMITER ;
 DELIMITER //
 CREATE PROCEDURE modifier_point(IN PNT INT, IN ID INT, IN USR TEXT)
 BEGIN
-IF PNT == 0 OR PNT == 1 THEN UPDATE t_notation_nte SET nte_note = PNT WHERE cdt_id = ID AND cpt_username = USR;
-ELSEIF (PNT >= 2 OR PNT <= 4) AND get_points_attribues(PNT, USR) != NULL THEN UPDATE t_notation_nte SET nte_note = PNT WHERE cdt_id = ID AND cpt_username = USR;
+IF PNT = 0 OR PNT = 1 THEN UPDATE t_notation_nte SET nte_note = PNT WHERE cdt_id = ID AND cpt_username = USR;
+ELSEIF (PNT >= 2 OR PNT <= 4) AND get_points_attribues(PNT, USR) IS NULL THEN UPDATE t_notation_nte SET nte_note = PNT WHERE cdt_id = ID AND cpt_username = USR;
 END IF;
 END;
 //
@@ -352,6 +399,8 @@ SET @usr = 'chleo.lamarre@gmail.com';
 SELECT cdt_nom_candidat, cdt_prenom_candidat, SUM(nte_note) as cdt_note, cnc_id, cat_id 
 FROM t_candidature_cdt 
 JOIN t_notation_nte ON t_notation_nte.cdt_id = t_candidature_cdt.cdt_id
-WHERE cnc_id = (SELECT cnc_id FROM t_juge_jge WHERE cpt_username = @usr) AND cdt_etat = 'S'
+JOIN t_jury_jry ON t_notation_nte.cpt_username = t_jury_jry.cpt_username
+JOIN t_compte_cpt ON t_jury_jry.cpt_username = t_compte_cpt.cpt_username
+WHERE cnc_id = (SELECT cnc_id FROM t_juge_jge WHERE cpt_username = @usr) AND cdt_etat = 'S' AND cpt_etat = 'A'
 GROUP BY t_candidature_cdt.cdt_id
 ORDER BY cdt_note DESC;

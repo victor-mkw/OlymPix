@@ -30,8 +30,8 @@ compte_etat: char(1)</panel_attributes>
 _id_compte: number(4)_
 nom_jury: varchar(60)
 prenom_jury: varchar(60)
+discipline: varchar(200)
 biographie: varchar(2000)
-description: varchar(200)
 URL: varchar(300)
 image_jury: varchar(200)</panel_attributes>
     <additional_attributes/>
@@ -140,7 +140,8 @@ prenom_candidat: varchar(60)
 presentation_candidat: varchar(200)
 code_candidat: char(8)
 code_dossier: char(20) 
-candidat_etat: char(1)</panel_attributes>
+candidat_etat: char(1)
+candidat_date_inscription: date</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
