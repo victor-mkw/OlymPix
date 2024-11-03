@@ -64,7 +64,7 @@ SET @date_candidature := ADDDATE(@date_debut, @nbj_candidature);
 SET @date_pre_sel := ADDDATE(@date_candidature, @nbj_pre_sel);
 SET @date_sel := ADDDATE(@date_pre_sel, @nbj_sel);
 
-SELECT CONCAT_WS(', ', @date_debut, @date_candidature, @date_pre_sel, @date_sel) INTO @res;
+SELECT CONCAT_WS(' => ', @date_debut, @date_candidature, @date_pre_sel, @date_sel) INTO @res;
 RETURN @res;
 END;
 //
@@ -75,10 +75,10 @@ SELECT cnc_nom, cnc_description, cpt_username, get_date_intermediaire(cnc_id), g
 
 
 --3. Requête listant les concours qui ont débuté et leur phase actuelle (ex : finale)
-SELECT cnc_nom, cnc_description, donner_phase_concours(cnc_id) FROM t_concours_cnc WHERE cnc_date_debut < CURDATE();
+SELECT cnc_nom, cnc_description, donner_phase_concours(cnc_id) FROM t_concours_cnc WHERE cnc_date_debut <= CURDATE();
 
 --4. Requête listant les concours à venir avec leur date de début
-SELECT cnc_nom, cnc_description, cnc_date_debut FROM t_concours_cnc WHERE cnc_date_debut >= CURDATE();
+SELECT cnc_nom, cnc_description, cnc_date_debut FROM t_concours_cnc WHERE cnc_date_debut > CURDATE();
 
 --5. Requête donnant toutes les caractéristiques d’un concours particulier (ID connu)
 SELECT * FROM t_concours_cnc WHERE cnc_id = 1;
@@ -114,7 +114,7 @@ END;
 //
 DELIMITER ;
 
-SELECT cdt_nom_candidat, cdt_prenom_candidat, cat_nom, cdt_date_inscription, get_nb_docs(t_candidature_cdt.cdt_id) FROM t_candidature_cdt
+SELECT cdt_nom_candidat, cdt_prenom_candidat, cat_nom, cdt_date_inscription, get_nb_docs(cdt_id) FROM t_candidature_cdt
 JOIN t_categorie_cat USING (cat_id)
 WHERE cdt_etat = 'P' AND cnc_id = 1;
 
@@ -127,15 +127,14 @@ ORDER BY cat_nom ASC;
 --12. Requête donnant tous les noms des documents ressources d’un candidat (ID connu) pour un concours particulier (ID connu)
 SELECT cdt_nom_candidat, cdt_prenom_candidat, doc_nom FROM t_document_doc 
 JOIN t_candidature_cdt USING (cdt_id)
-JOIN t_concours_cnc USING (cnc_id)
-WHERE cdt_id = 1 AND cnc_id = 1;
+WHERE cdt_id = 2 AND cnc_id = 1;
 
 --13. Requête donnant le palmarès d’un concours particulier (ID connu) pour lequel la phase finale est terminée
-SELECT DISTINCT cdt_nom_candidat, cdt_prenom_candidat, cnc_id FROM t_candidature_cdt
+SELECT cdt_nom_candidat, cdt_prenom_candidat, cnc_id FROM t_candidature_cdt
 WHERE cnc_id = 1 AND donner_phase_concours(1) = 'terminé' AND cdt_etat = 'S';
 
 --14. Requête donnant les palmarès ( nom / prénom / rang des 3 vainqueurs) des concours terminés (sans tenir compte des notes des juges au profil désactivé)
-SELECT cdt_nom_candidat, cdt_prenom_candidat, cnc_id, SUM(nte_note) as note FROM t_candidature_cdt
+SELECT cdt_nom_candidat, cdt_prenom_candidat, cnc_id, cat_id, SUM(nte_note) as note FROM t_candidature_cdt
 JOIN t_notation_nte ON t_candidature_cdt.cdt_id = t_notation_nte.cdt_id
 JOIN t_jury_jry ON t_notation_nte.cpt_username = t_jury_jry.cpt_username
 JOIN t_compte_cpt ON t_jury_jry.cpt_username = t_compte_cpt.cpt_username
@@ -166,11 +165,10 @@ WHERE candidat_existe(@code_c, @code_d) = cdt_id;
 --sprint 2⇒
 --3. Requête(s) d’insertion de toutes les données d’un candidat et de sa candidature, y compris ses documents ressources et sa catégorie
 SET @id_cnc := 2;
-SET @id_cat := 3
+SET @id_cat := 3;
 INSERT INTO t_candidature_cdt 
 VALUES(NULL,'mail@gmail.com','Nom', 'Prénom', 'Description', 'code dossier', 'code candidat', '0000-00-00', 'N', @id_cnc, @id_cat);
 
---En PHP: récupération du nom du document fournis dans le formulaire et du chemin relatif pour insérer dans la base
 INSERT INTO t_document_doc VALUES(NULL,'2024-10-27Nomdudocument.exe', './documents/2024-10-27Nomdudocument.exe', 'Executable Windows', 2);
 
 --4. Requête(s) de suppression d’une candidature connaissant le couple de code d’identification / code d’inscription
@@ -180,6 +178,7 @@ BEFORE DELETE ON t_candidature_cdt
 FOR EACH ROW
 BEGIN
 DELETE FROM t_document_doc WHERE t_candidature_cdt.cdt_id = OLD.cdt_id;
+DELETE FROM t_notation_nte WHERE t_notation_nte.cdt_id = OLD.cdt_id;
 END;
 //
 DELIMITER ;
@@ -332,7 +331,8 @@ SELECT cdt_nom_candidat, cdt_prenom_candidat, cat_id FROM t_candidature_cdt WHER
 SELECT cdt_nom_candidat, cdt_prenom_candidat, cdt_etat FROM t_candidature_cdt WHERE cnc_id = 1 ORDER BY cdt_etat;
 
 -- 6. Requête donnant la liste des candidatures faites non pré-sélectionnées pour un concours particulier en phase de pré-sélection
-SELECT cdt_nom_candidat, cdt_prenom_candidat, cdt_etat, donner_phase_concours(cnc_id) as cnc_phase FROM t_candidature_cdt WHERE donner_phase_concours(cnc_id) = 'pré-sélection' AND cnc_id = 2 AND cdt_etat = 'P';
+SELECT cdt_nom_candidat, cdt_prenom_candidat, cdt_etat, donner_phase_concours(cnc_id) as cnc_phase FROM t_candidature_cdt 
+WHERE donner_phase_concours(cnc_id) = 'pré-sélection' AND cnc_id = 2 AND cdt_etat = 'N';
 
 -- 7. Requête (ou code SQL) modifiant l’état d’une candidature (ID connu)
 DELIMITER //
